@@ -23,16 +23,13 @@ func NewServer(addr string) *Server {
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	// Create a new buffered reader for the connection
 	reader := bufio.NewReader(conn)
 
 	for {
-		// Read the request line
 		requestLine, err := reader.ReadString('\n')
 
 		if err != nil {
 			if err.Error() == "EOF" {
-				// Connection closed by the client
 				return
 			}
 
@@ -41,13 +38,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 			return
 		}
 
-		// Parse the request line to get the method and path
 		parts := strings.Split(strings.TrimSpace(requestLine), " ")
 
 		method := parts[0]
 		path := parts[1]
 
-		// Create a new HTTP request
 		req, err := http.NewRequest(method, path, nil)
 
 		if err != nil {
@@ -55,10 +50,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 			return
 		}
 
-		// Create a new HTTP response writer
 		w := NewResponseWriter(conn)
 
-		// Serve the request using the router
 		s.router.ServeHTTP(w, req)
 	}
 }
@@ -151,11 +144,9 @@ func (w *ResponseWriter) WriteHeader(statusCode int) {
 	}
 	w.statusCode = statusCode
 
-	// Write the status line
 	statusLine := fmt.Sprintf("HTTP/1.1 %d %s\r\n", statusCode, http.StatusText(statusCode))
 	w.conn.Write([]byte(statusLine))
 
-	// Write the headers
 	for key, values := range w.headers {
 		for _, value := range values {
 			header := fmt.Sprintf("%s: %s\r\n", key, value)
@@ -163,7 +154,6 @@ func (w *ResponseWriter) WriteHeader(statusCode int) {
 		}
 	}
 
-	// Write the blank line to separate headers from the body
 	w.conn.Write([]byte("\r\n"))
 	w.headerWritten = true
 }
